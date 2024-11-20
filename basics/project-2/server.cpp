@@ -85,8 +85,8 @@ int main() {
     FD_SET(srvfd, &fr);
 
     timeval time;
-    time.tv_sec = 1;
-    time.tv_usec = 0;
+    time.tv_sec = 0;
+    time.tv_usec = 500000;
 
     for (int i = 0; i < MAXCLIENT; i++) {
       if (clientarray[i] != 0) {
@@ -124,7 +124,44 @@ int main() {
       for (int i = 0; i < MAXCLIENT; ++i) {
         if (clientarray[i] != 0 && FD_ISSET(clientarray[i], &fr)) {
           char buffer[1024] = {0};
-          int valread = 0;
+          int valread = read(clientarray[i], &buffer, sizeof(buffer));
+          if (valread < 0) {
+            cout << "Failed to read the data form clientsocket : "
+                 << clientarray[i] << endl;
+          } else if (valread == 0) {
+            cout << "Client is disconnected : " << clientarray[i] << endl;
+            close(clientarray[i]);
+            clientarray[i] = 0;
+          } else {
+            struct sockaddr_in clientinfo;
+            socklen_t clientstructlen = sizeof(clientinfo);
+            char client_ip_addr[INET_ADDRSTRLEN];
+            int client_port = 0;
+            if (getpeername(clientarray[i], (struct sockaddr *)&clientinfo,
+                            &clientstructlen) == 0) {
+              inet_ntop(AF_INET, &clientinfo.sin_addr, client_ip_addr,
+                        sizeof(client_ip_addr));
+              client_port = ntohs(clientinfo.sin_port);
+            }
+            char message[2048]; // Increased buffer size to accommodate the
+                                // message
+            snprintf(message, sizeof(message),
+                     "Message from the IP ADDR: %s PORT: %d\n%s",
+                     client_ip_addr, client_port, buffer);
+            for (int j = 0; j < MAXCLIENT; j++) {
+              if (clientarray[j] != 0 && clientarray[i] != clientarray[j]) {
+
+                int send_val =
+                    send(clientarray[j], &message, strlen(message), 0);
+                if (send_val < 0) {
+                  cout << "Failed to send message to client: " << clientarray[j]
+                       << endl;
+                  continue;
+                }
+              }
+            }
+            cout << message << endl;
+          }
         }
       }
 
