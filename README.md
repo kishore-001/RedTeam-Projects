@@ -157,8 +157,8 @@ Projects are primarily developed in:
 
 ## 📈 Progress
 
-- **Completed Projects**: [ 1 out of 100 ]
-- **Current Project**: [ - ]
+- **Completed Projects**: [ 2 out of 100 ]
+- **Current Project**: [ 3 ]
 
 ---
 
